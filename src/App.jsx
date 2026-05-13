@@ -52,7 +52,13 @@ export default function App() {
     <Routes>
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/login" element={
-        !session ? <Login /> : <Navigate to={profile?.role === 'coach' ? '/coach' : '/app'} />
+        !session ? <Login /> : (
+          loading ? (
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-pink-400 border-t-transparent rounded-full animate-spin" />
+            </div>
+    ) : <Navigate to={profile?.role === 'coach' ? '/coach' : '/app'} />
+  )
       } />
       <Route path="/coach/*" element={
         session && profile?.role === 'coach' ? <CoachDashboard /> : <Navigate to="/login" />
