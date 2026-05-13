@@ -38,6 +38,7 @@ export default function App() {
       .select('*')
       .eq('id', userId)
       .single()
+    console.log('Profil chargé:', data?.role, data?.email)
     setProfile(data)
     setLoading(false)
   }
