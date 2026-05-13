@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import Login from './pages/Login'
@@ -42,32 +42,36 @@ export default function App() {
     setLoading(false)
   }
 
-  if (loading) return (
+  const spinner = (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-pink-400 border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
+  if (loading) return spinner
+
   return (
     <Routes>
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/accept-invite" element={<AcceptInvite />} />
       <Route path="/login" element={
-        !session ? <Login /> : (
-          loading ? (
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-pink-400 border-t-transparent rounded-full animate-spin" />
-            </div>
-    ) : <Navigate to={profile?.role === 'coach' ? '/coach' : '/app'} />
-  )
+        !session ? <Login /> : <Navigate to={profile?.role === 'coach' ? '/coach' : '/app'} replace />
       } />
       <Route path="/coach/*" element={
-        session && profile?.role === 'coach' ? <CoachDashboard /> : <Navigate to="/login" />
+        !session ? <Navigate to="/login" replace /> :
+        profile?.role === 'coach' ? <CoachDashboard /> :
+        <Navigate to="/app" replace />
       } />
       <Route path="/app/*" element={
-        session && profile?.role === 'client' ? <ClientHome /> : <Navigate to="/login" />
+        !session ? <Navigate to="/login" replace /> :
+        profile?.role === 'client' ? <ClientHome /> :
+        <Navigate to="/coach" replace />
       } />
-      <Route path="*" element={<Navigate to="/login" />} />
-      <Route path="/accept-invite" element={<AcceptInvite />} />
+      <Route path="/" element={
+        !session ? <Navigate to="/login" replace /> :
+        <Navigate to={profile?.role === 'coach' ? '/coach' : '/app'} replace />
+      } />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )
 }
