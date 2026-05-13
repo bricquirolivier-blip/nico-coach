@@ -8,7 +8,33 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [done, setDone] = useState(false)
+  const [ready, setReady] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Récupère le token depuis l'URL (hash ou query params)
+    const hash = window.location.hash
+    const params = new URLSearchParams(hash.replace('#', '?'))
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+    const type = params.get('type')
+
+    if (accessToken && type === 'recovery') {
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || '',
+      }).then(({ error }) => {
+        if (error) setError(error.message)
+        else setReady(true)
+      })
+    } else {
+      // Vérifie si une session existe déjà
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setReady(true)
+        else setError('Lien invalide ou expiré. Demande un nouveau lien.')
+      })
+    }
+  }, [])
 
   async function handleReset(e) {
     e.preventDefault()
@@ -45,38 +71,59 @@ export default function ResetPassword() {
           <h1 className="text-xl font-medium text-gray-800">Nouveau mot de passe</h1>
           <p className="text-sm text-gray-400 mt-1">Choisis ton nouveau mot de passe</p>
         </div>
-        <form onSubmit={handleReset} className="flex flex-col gap-4">
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">Nouveau mot de passe</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-300"
-              placeholder="••••••••"
-              required
-            />
+
+        {!ready && !error && (
+          <div className="flex justify-center py-4">
+            <div className="w-6 h-6 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
           </div>
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">Confirmer</label>
-            <input
-              type="password"
-              value={confirm}
-              onChange={e => setConfirm(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-300"
-              placeholder="••••••••"
-              required
-            />
+        )}
+
+        {error && (
+          <div className="text-center">
+            <p className="text-sm text-red-500 mb-4">{error}</p>
+            <button
+              onClick={() => navigate('/login')}
+              className="text-xs text-rose-500 underline"
+            >
+              Retour au login
+            </button>
           </div>
-          {error && <p className="text-xs text-red-500 text-center">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-rose-500 hover:bg-rose-600 text-white rounded-lg py-2.5 text-sm font-medium transition-colors disabled:opacity-50"
-          >
-            {loading ? 'Modification...' : 'Modifier mon mot de passe'}
-          </button>
-        </form>
+        )}
+
+        {ready && (
+          <form onSubmit={handleReset} className="flex flex-col gap-4">
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Nouveau mot de passe</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-300"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-1 block">Confirmer</label>
+              <input
+                type="password"
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-300"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-rose-500 hover:bg-rose-600 text-white rounded-lg py-2.5 text-sm font-medium transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Modification...' : 'Modifier mon mot de passe'}
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )
