@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase'
 import Login from './pages/Login'
 import CoachDashboard from './pages/coach/Dashboard'
 import ClientHome from './pages/client/Home'
+import ResetPassword from './pages/ResetPassword'
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -55,6 +56,7 @@ export default function App() {
         session && profile?.role === 'client' ? <ClientHome /> : <Navigate to="/login" />
       } />
       <Route path="*" element={<Navigate to="/login" />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
     </Routes>
   )
 }
