@@ -8,15 +8,14 @@ import ResetPassword from './pages/ResetPassword'
 import AcceptInvite from './pages/AcceptInvite'
 
 export default function App() {
-  const [session, setSession] = useState(null)
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [session, setSession] = useState(undefined)
+  const [profile, setProfile] = useState(undefined)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session) fetchProfile(session.user.id)
-      else setLoading(false)
+      else setSession(null)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -24,9 +23,10 @@ export default function App() {
         window.location.href = '/reset-password'
         return
       }
-      setSession(session)
-      if (session) fetchProfile(session.user.id)
-      else { setProfile(null); setLoading(false) }
+      if (event === 'SIGNED_OUT') {
+        setSession(null)
+        setProfile(null)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -38,18 +38,18 @@ export default function App() {
       .select('*')
       .eq('id', userId)
       .single()
-    console.log('Profil chargé:', data?.role, data?.email)
+    setSession(s => s)
     setProfile(data)
-    setLoading(false)
   }
 
-  const spinner = (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-pink-400 border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
-
-  if (loading) return spinner
+  // Attend que tout soit chargé
+  if (session === undefined || (session && profile === undefined)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-pink-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <Routes>
