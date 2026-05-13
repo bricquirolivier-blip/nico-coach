@@ -11,22 +11,33 @@ export default function AcceptInvite() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    // Supabase redirige avec les tokens dans le hash après vérification
     const hash = window.location.hash
     const params = new URLSearchParams(hash.replace('#', ''))
     const accessToken = params.get('access_token')
     const refreshToken = params.get('refresh_token')
     const type = params.get('type')
 
-    if (accessToken && type === 'invite') {
+    console.log('Hash complet:', hash)
+    console.log('Access token:', accessToken)
+    console.log('Type:', type)
+
+    if (accessToken) {
       supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken || '',
-      }).then(({ error }) => {
-        if (error) setError(error.message)
+      }).then(({ data, error }) => {
+        console.log('setSession result:', JSON.stringify({ data: data?.session?.user?.email, error }))
+        if (error) setError('Lien invalide ou expiré : ' + error.message)
         else setReady(true)
       })
     } else {
-      setError('Lien invalide ou expiré.')
+      // Vérifie si une session existe déjà
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        console.log('Session existante:', session?.user?.email)
+        if (session) setReady(true)
+        else setError('Lien invalide ou expiré. Demande à ton coach de renvoyer une invitation.')
+      })
     }
   }, [])
 

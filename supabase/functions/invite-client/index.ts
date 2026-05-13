@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
       data: { first_name, last_name, role: 'client' },
-      redirectTo: 'https://nico-coach-ecru.vercel.app',
+      redirectTo: 'https://nico-coach-ecru.vercel.app/accept-invite',
     })
 
     console.log('Résultat:', JSON.stringify({ data, error }))
