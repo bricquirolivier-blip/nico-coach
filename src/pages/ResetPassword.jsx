@@ -12,23 +12,19 @@ export default function ResetPassword() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Récupère le token depuis l'URL (hash ou query params)
-    const hash = window.location.hash
-    const params = new URLSearchParams(hash.replace('#', '?'))
-    const accessToken = params.get('access_token')
-    const refreshToken = params.get('refresh_token')
+    const params = new URLSearchParams(window.location.search)
+    const tokenHash = params.get('token_hash')
     const type = params.get('type')
-
-    if (accessToken && type === 'recovery') {
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken || '',
-      }).then(({ error }) => {
-        if (error) setError(error.message)
+  
+    if (tokenHash && type === 'recovery') {
+      supabase.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: 'recovery',
+      }).then(({ data, error }) => {
+        if (error) setError('Lien invalide ou expiré. Demande un nouveau lien.')
         else setReady(true)
       })
     } else {
-      // Vérifie si une session existe déjà
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) setReady(true)
         else setError('Lien invalide ou expiré. Demande un nouveau lien.')
