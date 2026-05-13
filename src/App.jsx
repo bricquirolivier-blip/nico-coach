@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import CoachDashboard from './pages/coach/Dashboard'
 import ClientHome from './pages/client/Home'
 import ResetPassword from './pages/ResetPassword'
+import AcceptInvite from './pages/AcceptInvite'
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -60,6 +61,7 @@ export default function App() {
         session && profile?.role === 'client' ? <ClientHome /> : <Navigate to="/login" />
       } />
       <Route path="*" element={<Navigate to="/login" />} />
+      <Route path="/accept-invite" element={<AcceptInvite />} />
     </Routes>
   )
 }
