@@ -17,7 +17,14 @@ export default function Clients() {
     const { data: { user } } = await supabase.auth.getUser()
     const { data } = await supabase
       .from('clients')
-      .select('*')
+      .select(`
+        *,
+        questionnaire_responses (
+          is_score,
+          completed_at,
+          week_number
+        )
+      `)
       .eq('coach_id', user.id)
       .order('created_at', { ascending: false })
     setClients(data || [])
@@ -199,8 +206,25 @@ export default function Clients() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5">
-                    <span className="text-sm font-medium text-rose-500">—</span>
-                  </td>
+                     {(() => {
+                        const responses = c.questionnaire_responses || []
+                        if (responses.length === 0) return <span className="text-xs text-gray-300">—</span>
+                        const sorted = [...responses].sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))
+                        const latest = sorted[0]
+                        const previous = sorted[1]
+                        const delta = previous ? latest.is_score - previous.is_score : null
+                        return (
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-sm font-medium text-rose-500">{latest.is_score}</span>
+                                {delta !== null && (
+                                    <span className={`text-xs font-medium ${delta > 0 ? 'text-teal-600' : delta < 0 ? 'text-red-400' : 'text-gray-400'}`}>
+                                        {delta > 0 ? `↑+${delta}` : delta < 0 ? `↓${delta}` : '→0'}
+                                    </span>
+                                )}
+                            </div>
+                        )
+                    })()}
+                </td>
                   <td className="px-5 py-3.5">
                     {c.dominant_profile ? (
                       <span className={`text-xs px-2 py-0.5 rounded-full ${profileColors[c.dominant_profile] || 'bg-gray-50 text-gray-600'}`}>
