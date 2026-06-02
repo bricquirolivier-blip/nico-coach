@@ -1,4 +1,5 @@
-import { useState } from 'react'
+// v2
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { Routes, Route, NavLink, useNavigate } from 'react-router-dom'
 import Clients from './Clients'

@@ -9,25 +9,25 @@ export default function Login() {
   const [resetMode, setResetMode] = useState(false)
   const [resetSent, setResetSent] = useState(false)
 
-  async function handleLogin(e) {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-    // Récupère le profil et redirige manuellement
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single()
-    
-    window.location.href = profile?.role === 'coach' ? '/coach' : '/app'
+async function handleLogin(e) {
+  e.preventDefault()
+  setLoading(true)
+  setError(null)
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) {
+    setError(error.message)
+    setLoading(false)
+    return
   }
+  // Récupère le profil et redirige manuellement
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .single()
+  
+  window.location.href = profile?.role === 'coach' ? '/coach' : '/app'
+}
 
   async function handleReset(e) {
     e.preventDefault()
